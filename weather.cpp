@@ -109,71 +109,52 @@ int main(int argc, char *argv[])
 	}
   }
 
+  minTemp     = std::to_string( std::stoi(minTemp)); 
+  maxTemp     = std::to_string( std::stoi(maxTemp));
+  currentTemp = std::to_string( std::stoi(currentTemp));
 
 
 
-  float brightness = 0.2;
-  bool cont = true; 
-
+  	float brightness = 0.2;
+  	bool cont = true; 
+	canvas->Clear();
 	if( icon == "01" )
-	{
-	canvas->Clear();
 	DrawIcon( canvas, icon_01d, brightness );
-	sleep(10);
-	}
-
 	if ( icon == "02" )
-	{
-	canvas->Clear();
 	DrawIcon( canvas, icon_02d, brightness );
-	sleep(10);
-	}
-        
 	if ( icon == "03" )
-	{
-        canvas->Clear();
         DrawIcon( canvas, icon_03d, brightness );
-        sleep(10);
-	}
         if ( icon == "04" )
-	{
-        canvas->Clear();
         DrawIcon( canvas, icon_04d, brightness );
-        sleep(10);
-	}
         if ( icon == "09" )
-	{
-        canvas->Clear();
         DrawIcon( canvas, icon_09d, brightness );
-        sleep(10);
-	}
         if (icon == "10" )
-	{
-        canvas->Clear();
         DrawIcon( canvas, icon_10d, brightness );
-        sleep(10);
-	}
         if ( icon == "11" )
-	{
-        canvas->Clear();
         DrawIcon( canvas, icon_11d, brightness );
-        sleep(10);
-	}
         if ( icon == "13" )
-	{
-        canvas->Clear();
         DrawIcon( canvas, icon_13d, brightness );
-        sleep(10);
-	}
         if ( icon == "50" )
-	{
-        canvas->Clear();
         DrawIcon( canvas, icon_50d, brightness );
-        sleep(10);
-	}
+		
+	// draw min temp
+	rgb_matrix::Color minColor(brightness * 51, brightness * 153, brightness * 255);
+	rgb_matrix::DrawText(canvas, font, 0, 32, minColor, minTemp.c_str());
 
-        canvas->Clear();
-	DrawIcon( canvas, icon_hannah, 0.5 );
+	//draw current temp
+	rgb_matrix::Color currentColor(brightness * 100, brightness * 100 , brightness * 100);
+	rgb_matrix::DrawText(canvas, font, 11 ,32, currentColor, currentTemp.c_str() );
+
+	// draw max temp
+        rgb_matrix::Color maxColor(brightness * 255, brightness * 51 , brightness * 0);
+	rgb_matrix::DrawText(canvas, font, 22 ,32, maxColor,  maxTemp.c_str() );
+
+
+	sleep(10);
+
+
+        //canvas->Clear();
+	//DrawIcon( canvas, icon_hannah, 0.5 );
 	sleep(10);	
 
 
