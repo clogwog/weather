@@ -15,6 +15,7 @@
 #include <fstream>
 
 #include "icons.h"
+#include "animation.h"
 
 using namespace std;
 
@@ -77,13 +78,15 @@ int main(int argc, char *argv[])
 
   printf("hello\n");
 
-  int delay = 10;
   string currentTemp = "12";
   string minTemp     = "4";
   string maxTemp     = "24";
   string icon        = "";
+  string dailycovidCases  = "";
+  string activeCovidCases = "";
+  string nextISSPass = "";
 
-  for( int t=1; t < 5; t++)
+  for( int t=1; t < 9; t++)
   {
 	switch(t)
 	{
@@ -106,6 +109,16 @@ int main(int argc, char *argv[])
 		case 5: // brightness
 		break;
 
+		case 6:
+			dailycovidCases = readFile("/tmp/currentcovid");
+		break;
+		case 7:
+			activeCovidCases = readFile("/tmp/activecovid");
+		break;
+		case 8:
+			nextISSPass = readFile("/tmp/isspassutc");
+		break;
+
 	}
   }
 
@@ -114,9 +127,15 @@ int main(int argc, char *argv[])
   currentTemp = std::to_string( std::stoi(currentTemp));
 
 
+  	float brightnessCorrection = 1.0;
+	time_t t = time(0);
+	struct tm* now = localtime(&t);
 
-  	float brightness = 0.2;
-  	bool cont = true; 
+	if (now->tm_hour < 7 || now->tm_hour > 22 )
+		brightnessCorrection = 0.2;
+
+
+  	float brightness = 0.2 * brightnessCorrection;
 	canvas->Clear();
 	if( icon == "01" )
 	DrawIcon( canvas, icon_01d, brightness );
@@ -152,14 +171,76 @@ int main(int argc, char *argv[])
 
 	sleep(10);
 
-
-        //canvas->Clear();
-	//DrawIcon( canvas, icon_hannah, 0.5 );
-	sleep(10);	
+	//rgb_matrix::Color covidColor(brightness * 169, brightness * 238, brightness * 73 );
+        rgb_matrix::Color covidColor( 169 * brightnessCorrection, 238 * brightnessCorrection, 73 * brightnessCorrection);
 
 
-  canvas->Clear();
-  delete canvas;
-  return 0;
+        canvas->Clear();
+	DrawIcon( canvas, icon_covid_19, 0.5 * brightnessCorrection );
+	
+	// active cases
+	printf("active cases %s\n", activeCovidCases.c_str());
+	rgb_matrix::DrawText(canvas, font, 0,28, covidColor, activeCovidCases.c_str() );
+
+	//draw current covid
+        printf("daily cases %s\n" , dailycovidCases.c_str());
+        rgb_matrix::DrawText(canvas, font, 19 ,28, covidColor,  dailycovidCases.c_str() );
+
+	sleep(10);
+
+	printf("isspass : %s\n",nextISSPass.c_str());
+
+	if ( nextISSPass.length() > 0 )
+	{
+		long nextUtc = std::atol(nextISSPass.c_str());
+		time_t utc_now = time( NULL );
+		printf( " %ld  >= %ld \n" , utc_now, nextUtc );
+		if( utc_now <= nextUtc )
+		{
+			canvas->Clear();
+			for( int index = 0; index < animation_frames; index++)
+			{
+				time_t tt_Dif = nextUtc - utc_now; 
+				int nSeconds            = tt_Dif % 60;  tt_Dif /= 60;
+				int nMinutes            = tt_Dif % 60;  tt_Dif /= 60;
+				int nHours              = tt_Dif % 24;  tt_Dif /= 24;
+				int nDays               = tt_Dif;
+											                        
+				string output;
+				if( nDays > 0 )
+				{       
+				          output += std::to_string(nDays);
+				          output += " ";
+				}
+				else    
+				{       
+				          output += "  ";
+				}
+				if( nHours <= 9 ) 
+				          output += "0";
+				output += std::to_string(nHours) + " " ;
+				if ( nMinutes <= 0) 
+				          output += "0";
+				output += std::to_string(nMinutes);
+				if ( nSeconds <= 9 )
+				          output += "0";
+				output += std::to_string(nSeconds);
+
+				DrawIcon(canvas, animation_icons[index], 1.0);
+	                        rgb_matrix::DrawText(canvas, font, 0, 32, currentColor, output.c_str());
+							
+				usleep(100000);
+				utc_now = time( NULL );
+			}
+			
+		}
+	}
+
+
+
+
+  	canvas->Clear();
+  	delete canvas;
+  	return 0;
 }
 
